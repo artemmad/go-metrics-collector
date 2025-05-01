@@ -8,11 +8,6 @@ import (
 	"strings"
 )
 
-var (
-	gauge   = map[string]float64{}
-	counter = map[string]int64{}
-)
-
 const (
 	gaugeType   = "gauge"
 	counterType = "counter"
