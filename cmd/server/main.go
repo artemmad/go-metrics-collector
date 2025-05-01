@@ -51,7 +51,7 @@ func metricCalc(store storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 		if len(parts) < 4 || parts[0] != "update" {
-			http.Error(w, "invalid URL format", http.StatusBadRequest)
+			http.Error(w, "invalid URL format", http.StatusNotFound)
 			return
 		}
 
