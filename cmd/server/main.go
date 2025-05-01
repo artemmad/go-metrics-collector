@@ -21,6 +21,9 @@ func main() {
 
 	mux.HandleFunc("POST /update/", metricCalc)
 	mux.HandleFunc("GET /", metricList)
+	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		http.Error(writer, "404 page not found", http.StatusNotFound)
+	})
 
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
