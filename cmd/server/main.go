@@ -29,7 +29,7 @@ func main() {
 }
 
 func metricList(writer http.ResponseWriter, request *http.Request) {
-	var response string = ""
+	response := ""
 	response += strings.ToUpper(GAUGE) + ":\n"
 	for key, value := range gauge {
 		response += "\t" + key + ": " + strconv.FormatFloat(value, 'f', -1, 64) + "\n"
