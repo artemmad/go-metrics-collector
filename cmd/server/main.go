@@ -49,7 +49,7 @@ func metricCalc(writer http.ResponseWriter, request *http.Request) {
 
 	// валидировать что как минимум имеем 4 секции с / и оно начинается с update
 	if len(parts) < 4 || parts[0] != "update" {
-		http.Error(writer, "metric calc requires at least 4 parts", http.StatusBadRequest)
+		http.Error(writer, "metric calc requires at least 4 parts", http.StatusNotFound)
 		return
 	}
 
@@ -63,7 +63,7 @@ func metricCalc(writer http.ResponseWriter, request *http.Request) {
 	// разобрать реквест и вытащить ИМЯ_МЕТРИКИ, если нет - вернуть 404
 	metricName := strings.TrimSpace(parts[2])
 	if metricName == "" {
-		http.Error(writer, "metric name is required", http.StatusBadRequest)
+		http.Error(writer, "metric name is required", http.StatusNotFound)
 		return
 	}
 
