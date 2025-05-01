@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/artemmad/go-metrics-collector/internal/storage"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,15 +14,16 @@ var (
 )
 
 const (
-	GAUGE   = "gauge"
-	COUNTER = "counter"
+	gaugeType   = "gauge"
+	counterType = "counter"
 )
 
 func main() {
+	store := storage.NewMemStorage()
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /update/", metricCalc)
-	mux.HandleFunc("GET /", metricList)
+	mux.HandleFunc("POST /update/", metricCalc(store))
+	mux.HandleFunc("GET /", metricList(store))
 	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, "404 page not found", http.StatusNotFound)
 	})
@@ -31,67 +34,58 @@ func main() {
 	}
 }
 
-func metricList(writer http.ResponseWriter, request *http.Request) {
-	response := ""
-	response += strings.ToUpper(GAUGE) + ":\n"
-	for key, value := range gauge {
-		response += "\t" + key + ": " + strconv.FormatFloat(value, 'f', -1, 64) + "\n"
+func metricList(store storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var b strings.Builder
+
+		b.WriteString("GAUGE:\n")
+		for k, v := range store.GetGauges() {
+			b.WriteString(fmt.Sprintf("\t%s: %f\n", k, v))
+		}
+
+		b.WriteString("COUNTER:\n")
+		for k, v := range store.GetCounters() {
+			b.WriteString(fmt.Sprintf("\t%s: %d\n", k, v))
+		}
+
+		w.Write([]byte(b.String()))
 	}
-	response += strings.ToUpper(COUNTER) + ":\n"
-	for key, value := range counter {
-		response += "\t" + key + ": " + strconv.FormatInt(value, 10) + "\n"
-	}
-	response += "\n"
-	writer.Write([]byte(response))
 }
 
-func metricCalc(writer http.ResponseWriter, request *http.Request) {
-
-	//http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>, Content-Type: text/plain.
-	parts := strings.Split(strings.Trim(request.URL.Path, "/"), "/")
-
-	// валидировать что как минимум имеем 4 секции с / и оно начинается с update
-	if len(parts) < 4 || parts[0] != "update" {
-		http.Error(writer, "metric calc requires at least 4 parts", http.StatusNotFound)
-		return
-	}
-
-	// разобраться реквест чтобы понять ТИП_МЕТРИКИ, если не существует такого типа метрики - 400
-	metricType := strings.ToLower(strings.TrimSpace(parts[1]))
-	if metricType != GAUGE && metricType != COUNTER {
-		http.Error(writer, "metric type is unknown", http.StatusBadRequest)
-		return
-	}
-
-	// разобрать реквест и вытащить ИМЯ_МЕТРИКИ, если нет - вернуть 404
-	metricName := strings.TrimSpace(parts[2])
-	if metricName == "" {
-		http.Error(writer, "metric name is required", http.StatusNotFound)
-		return
-	}
-
-	// разобрать реквест и вытащить ЗНАЧЕНИЕ_МЕТРИКИ
-	metricValueStr := strings.TrimSpace(parts[3])
-	switch metricType {
-	case GAUGE:
-		gaugeVal, err := strconv.ParseFloat(metricValueStr, 64)
-		if err != nil {
-			http.Error(writer, "metric value is invalid for type GAUGE", http.StatusBadRequest)
+func metricCalc(store storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+		if len(parts) < 4 || parts[0] != "update" {
+			http.Error(w, "invalid URL format", http.StatusBadRequest)
 			return
 		}
-		gauge[metricName] = gaugeVal
-	case COUNTER:
-		counterVal, err := strconv.ParseInt(metricValueStr, 10, 64)
-		if err != nil {
-			http.Error(writer, "metric value is invalid for type COUNTER", http.StatusBadRequest)
+
+		metricType := strings.ToLower(parts[1])
+		name := strings.TrimSpace(parts[2])
+		valueStr := strings.TrimSpace(parts[3])
+
+		switch metricType {
+		case gaugeType:
+			val, err := strconv.ParseFloat(valueStr, 64)
+			if err != nil {
+				http.Error(w, "invalid gauge value", http.StatusBadRequest)
+				return
+			}
+			store.SetGauge(name, val)
+
+		case counterType:
+			val, err := strconv.ParseInt(valueStr, 10, 64)
+			if err != nil {
+				http.Error(w, "invalid counter value", http.StatusBadRequest)
+				return
+			}
+			store.SetCounter(name, val)
+
+		default:
+			http.Error(w, "unknown metric type", http.StatusBadRequest)
 			return
 		}
-		counter[metricName] = counterVal
-	default:
-		http.Error(writer, "unsupported metric type", http.StatusBadRequest)
-		return
-	}
 
-	// вернуть 200ОК
-	writer.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusOK)
+	}
 }
