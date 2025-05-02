@@ -2,15 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/artemmad/go-metrics-collector/internal"
 	"github.com/artemmad/go-metrics-collector/internal/storage"
 	"net/http"
 	"strconv"
 	"strings"
-)
-
-const (
-	gaugeType   = "gauge"
-	counterType = "counter"
 )
 
 func MetricList(store storage.Storage) http.HandlerFunc {
@@ -44,7 +40,7 @@ func MetricCalc(store storage.Storage) http.HandlerFunc {
 		valueStr := strings.TrimSpace(parts[3])
 
 		switch metricType {
-		case gaugeType:
+		case internal.GaugeType:
 			val, err := strconv.ParseFloat(valueStr, 64)
 			if err != nil {
 				http.Error(w, "invalid gauge value", http.StatusBadRequest)
@@ -52,7 +48,7 @@ func MetricCalc(store storage.Storage) http.HandlerFunc {
 			}
 			store.SetGauge(name, val)
 
-		case counterType:
+		case internal.CounterType:
 			val, err := strconv.ParseInt(valueStr, 10, 64)
 			if err != nil {
 				http.Error(w, "invalid counter value", http.StatusBadRequest)
