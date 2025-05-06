@@ -69,6 +69,7 @@ func TestMetricCalc(t *testing.T) {
 			assert.Equal(t, tt.wantStatus, res.StatusCode)
 			if tt.wantBody != "" {
 				body, _ := io.ReadAll(res.Body)
+				defer res.Body.Close()
 				assert.Contains(t, string(body), tt.wantBody)
 			}
 			if tt.verify != nil {
@@ -121,6 +122,7 @@ func TestMetricList(t *testing.T) {
 			assert.Equal(t, tt.wantStatus, res.StatusCode)
 
 			body, _ := io.ReadAll(res.Body)
+			defer res.Body.Close()
 			bodyStr := string(body)
 			for _, expected := range tt.wantBody {
 				assert.Contains(t, bodyStr, expected)
