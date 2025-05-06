@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/artemmad/go-metrics-collector/internal"
-	"github.com/artemmad/go-metrics-collector/internal/storage"
+	"github.com/artemmad/go-metrics-collector/internal/Server/storage"
 	"net/http"
 	"strconv"
 	"strings"

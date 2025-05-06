@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/artemmad/go-metrics-collector/internal/handlers"
-	"github.com/artemmad/go-metrics-collector/internal/storage"
+	"github.com/artemmad/go-metrics-collector/internal/Server/handlers"
+	"github.com/artemmad/go-metrics-collector/internal/Server/storage"
 	"net/http"
 )
 
