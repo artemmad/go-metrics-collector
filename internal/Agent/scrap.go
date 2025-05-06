@@ -3,7 +3,6 @@ package internal
 import (
 	"fmt"
 	internal2 "github.com/artemmad/go-metrics-collector/internal"
-	"log"
 	"math/rand/v2"
 	"net/http"
 	"runtime"
@@ -66,7 +65,7 @@ func ReportMetric(metricType string, name string, val interface{}) {
 	url := fmt.Sprintf("%s/update/%s/%s/%v", ServerAddress, metricType, name, val)
 	resp, err := http.Post(url, "text/plain", nil)
 	if err != nil {
-		log.Printf("Error reporting metric %s: %v", name, err)
+		fmt.Println("Error sending request:", err)
 		return
 	}
 	defer resp.Body.Close()
