@@ -64,11 +64,12 @@ func ReportCounterMetric(name string, value int64) {
 
 func ReportMetric(metricType string, name string, val interface{}) {
 	url := fmt.Sprintf("%s/update/%s/%s/%v", ServerAddress, metricType, name, val)
-	_, err := http.Post(url, "text/plain", nil)
+	resp, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Printf("Error reporting metric %s: %v", name, err)
 		return
 	}
+	defer resp.Body.Close()
 }
 
 func UpdateMetrics() {
