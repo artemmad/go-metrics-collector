@@ -5,6 +5,7 @@ import (
 	"github.com/artemmad/go-metrics-collector/internal"
 	"github.com/artemmad/go-metrics-collector/internal/Server/storage"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -14,13 +15,25 @@ func MetricList(store storage.Storage) http.HandlerFunc {
 		var b strings.Builder
 
 		b.WriteString("GAUGE:\n")
-		for k, v := range store.GetGauges() {
-			b.WriteString(fmt.Sprintf("\t%s: %f\n", k, v))
+		gauges := store.GetGauges()
+		gaugeKeys := make([]string, 0, len(gauges))
+		for k := range gauges {
+			gaugeKeys = append(gaugeKeys, k)
+		}
+		sort.Strings(gaugeKeys)
+		for _, k := range gaugeKeys {
+			b.WriteString(fmt.Sprintf("\t%s: %f\n", k, gauges[k]))
 		}
 
 		b.WriteString("COUNTER:\n")
-		for k, v := range store.GetCounters() {
-			b.WriteString(fmt.Sprintf("\t%s: %d\n", k, v))
+		counters := store.GetCounters()
+		counterKeys := make([]string, 0, len(counters))
+		for k := range counters {
+			counterKeys = append(counterKeys, k)
+		}
+		sort.Strings(counterKeys)
+		for _, k := range counterKeys {
+			b.WriteString(fmt.Sprintf("\t%s: %d\n", k, counters[k]))
 		}
 
 		w.Write([]byte(b.String()))
