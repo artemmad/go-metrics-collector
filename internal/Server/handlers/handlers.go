@@ -2,15 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/artemmad/go-metrics-collector/internal/storage"
+	"github.com/artemmad/go-metrics-collector/internal"
+	"github.com/artemmad/go-metrics-collector/internal/Server/storage"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
-)
-
-const (
-	gaugeType   = "gauge"
-	counterType = "counter"
 )
 
 func MetricList(store storage.Storage) http.HandlerFunc {
@@ -18,13 +15,25 @@ func MetricList(store storage.Storage) http.HandlerFunc {
 		var b strings.Builder
 
 		b.WriteString("GAUGE:\n")
-		for k, v := range store.GetGauges() {
-			b.WriteString(fmt.Sprintf("\t%s: %f\n", k, v))
+		gauges := store.GetGauges()
+		gaugeKeys := make([]string, 0, len(gauges))
+		for k := range gauges {
+			gaugeKeys = append(gaugeKeys, k)
+		}
+		sort.Strings(gaugeKeys)
+		for _, k := range gaugeKeys {
+			b.WriteString(fmt.Sprintf("\t%s: %f\n", k, gauges[k]))
 		}
 
 		b.WriteString("COUNTER:\n")
-		for k, v := range store.GetCounters() {
-			b.WriteString(fmt.Sprintf("\t%s: %d\n", k, v))
+		counters := store.GetCounters()
+		counterKeys := make([]string, 0, len(counters))
+		for k := range counters {
+			counterKeys = append(counterKeys, k)
+		}
+		sort.Strings(counterKeys)
+		for _, k := range counterKeys {
+			b.WriteString(fmt.Sprintf("\t%s: %d\n", k, counters[k]))
 		}
 
 		w.Write([]byte(b.String()))
@@ -44,7 +53,7 @@ func MetricCalc(store storage.Storage) http.HandlerFunc {
 		valueStr := strings.TrimSpace(parts[3])
 
 		switch metricType {
-		case gaugeType:
+		case internal.GaugeType:
 			val, err := strconv.ParseFloat(valueStr, 64)
 			if err != nil {
 				http.Error(w, "invalid gauge value", http.StatusBadRequest)
@@ -52,7 +61,7 @@ func MetricCalc(store storage.Storage) http.HandlerFunc {
 			}
 			store.SetGauge(name, val)
 
-		case counterType:
+		case internal.CounterType:
 			val, err := strconv.ParseInt(valueStr, 10, 64)
 			if err != nil {
 				http.Error(w, "invalid counter value", http.StatusBadRequest)
