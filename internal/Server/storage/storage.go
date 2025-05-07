@@ -8,6 +8,7 @@ type Storage interface {
 
 	SetCounter(name string, value int64)
 	GetCounters() map[string]int64
+	AddCounter(name string, val int64)
 }
 
 type MemStorage struct {
@@ -43,6 +44,12 @@ func (s *MemStorage) SetCounter(name string, value int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.counters[name] = value
+}
+
+func (s *MemStorage) AddCounter(name string, value int64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.counters[name] += value
 }
 
 func (s *MemStorage) GetCounters() map[string]int64 {

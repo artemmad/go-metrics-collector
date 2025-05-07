@@ -64,7 +64,7 @@ func MetricCalc(store storage.Storage) http.HandlerFunc {
 				http.Error(w, "invalid counter value", http.StatusBadRequest)
 				return
 			}
-			store.SetCounter(name, val)
+			store.AddCounter(name, val)
 
 		default:
 			http.Error(w, "unknown metric type", http.StatusBadRequest)
