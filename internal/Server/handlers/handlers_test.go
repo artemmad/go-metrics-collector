@@ -204,6 +204,7 @@ func TestGetOneMetric(t *testing.T) {
 
 			body := rw.Body.String()
 			assert.Equal(t, tt.expectedBody, body)
+			rw.Result().Body.Close()
 		})
 	}
 }
