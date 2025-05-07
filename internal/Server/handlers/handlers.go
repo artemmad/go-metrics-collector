@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/artemmad/go-metrics-collector/internal"
 	"github.com/artemmad/go-metrics-collector/internal/Server/storage"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"sort"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 func MetricList(store storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var b strings.Builder
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 
 		b.WriteString("GAUGE:\n")
 		gauges := store.GetGauges()
@@ -37,20 +39,15 @@ func MetricList(store storage.Storage) http.HandlerFunc {
 		}
 
 		w.Write([]byte(b.String()))
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
 func MetricCalc(store storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-		if len(parts) < 4 || parts[0] != "update" {
-			http.Error(w, "invalid URL format", http.StatusNotFound)
-			return
-		}
-
-		metricType := strings.ToLower(parts[1])
-		name := strings.TrimSpace(parts[2])
-		valueStr := strings.TrimSpace(parts[3])
+		metricType := strings.ToLower(chi.URLParam(r, "metricType"))
+		name := strings.TrimSpace(chi.URLParam(r, "metricName"))
+		valueStr := strings.TrimSpace(chi.URLParam(r, "value"))
 
 		switch metricType {
 		case internal.GaugeType:
@@ -67,13 +64,41 @@ func MetricCalc(store storage.Storage) http.HandlerFunc {
 				http.Error(w, "invalid counter value", http.StatusBadRequest)
 				return
 			}
-			store.SetCounter(name, val)
+			store.AddCounter(name, val)
 
 		default:
 			http.Error(w, "unknown metric type", http.StatusBadRequest)
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func GetOneMetric(store *storage.MemStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metricType := chi.URLParam(r, "metricType")
+		metricName := chi.URLParam(r, "metricName")
+
+		w.Header().Add("Content-Type", "text/plain")
+		switch metricType {
+		case internal.GaugeType:
+			res, ok := store.GetGauges()[metricName]
+			if !ok {
+				http.Error(w, "metric not found", http.StatusNotFound)
+				return
+			}
+			w.Write([]byte(strconv.FormatFloat(res, 'f', -1, 64)))
+		case internal.CounterType:
+			res, ok := store.GetCounters()[metricName]
+			if !ok {
+				http.Error(w, "metric not found", http.StatusNotFound)
+				return
+			}
+			w.Write([]byte(strconv.FormatInt(res, 10)))
+		default:
+			http.Error(w, "unknown metric type", http.StatusNotFound)
+		}
 		w.WriteHeader(http.StatusOK)
 	}
 }

@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"context"
+	"github.com/artemmad/go-metrics-collector/internal"
 	"github.com/artemmad/go-metrics-collector/internal/Server/storage"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -60,10 +63,12 @@ func TestMetricCalc(t *testing.T) {
 				tt.prepare(store)
 			}
 
-			r := httptest.NewRequest(tt.method, tt.path, nil)
+			r := chi.NewRouter()
+			r.Post("/update/{metricType}/{metricName}/{value}", MetricCalc(store))
+
+			req := httptest.NewRequest(http.MethodPost, tt.path, nil)
 			rw := httptest.NewRecorder()
-			h := MetricCalc(store)
-			h.ServeHTTP(rw, r)
+			r.ServeHTTP(rw, req)
 
 			res := rw.Result()
 			assert.Equal(t, tt.wantStatus, res.StatusCode)
@@ -127,6 +132,79 @@ func TestMetricList(t *testing.T) {
 			for _, expected := range tt.wantBody {
 				assert.Contains(t, bodyStr, expected)
 			}
+		})
+	}
+}
+
+func TestGetOneMetric(t *testing.T) {
+	tests := []struct {
+		name           string
+		metricType     string
+		metricName     string
+		prepare        func(store *storage.MemStorage)
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name:       "existing gauge",
+			metricType: internal.GaugeType,
+			metricName: "temp",
+			prepare: func(s *storage.MemStorage) {
+				s.SetGauge("temp", 36.6)
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   "36.6",
+		},
+		{
+			name:       "existing counter",
+			metricType: internal.CounterType,
+			metricName: "requests",
+			prepare: func(s *storage.MemStorage) {
+				s.SetCounter("requests", 42)
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   "42",
+		},
+		{
+			name:           "non-existent metric",
+			metricType:     internal.GaugeType,
+			metricName:     "missing",
+			prepare:        func(s *storage.MemStorage) {},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "metric not found\n",
+		},
+		{
+			name:           "unknown metric type",
+			metricType:     "unknown",
+			metricName:     "test",
+			prepare:        func(s *storage.MemStorage) {},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "unknown metric type\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := storage.NewMemStorage()
+			if tt.prepare != nil {
+				tt.prepare(store)
+			}
+
+			r := httptest.NewRequest(http.MethodGet, "/value/"+tt.metricType+"/"+tt.metricName, nil)
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("metricType", tt.metricType)
+			rctx.URLParams.Add("metricName", tt.metricName)
+			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+
+			rw := httptest.NewRecorder()
+			GetOneMetric(store).ServeHTTP(rw, r)
+
+			res := rw.Result()
+			defer res.Body.Close()
+			assert.Equal(t, tt.expectedStatus, res.StatusCode)
+
+			body := rw.Body.String()
+			assert.Equal(t, tt.expectedBody, body)
 		})
 	}
 }
