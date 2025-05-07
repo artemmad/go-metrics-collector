@@ -200,11 +200,11 @@ func TestGetOneMetric(t *testing.T) {
 			GetOneMetric(store).ServeHTTP(rw, r)
 
 			res := rw.Result()
+			defer res.Body.Close()
 			assert.Equal(t, tt.expectedStatus, res.StatusCode)
 
 			body := rw.Body.String()
 			assert.Equal(t, tt.expectedBody, body)
-			rw.Result().Body.Close()
 		})
 	}
 }
