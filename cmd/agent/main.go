@@ -5,12 +5,8 @@ import (
 	"time"
 )
 
-const (
-	pollInterval   = 2 * time.Second
-	reportInterval = 10 * time.Second
-)
-
 func main() {
+	configFlags()
 	go func() {
 		for {
 			agent.UpdateMetrics()
