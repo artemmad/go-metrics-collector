@@ -18,7 +18,7 @@ func TestReportCounterMetric(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setServerAddress(ts.URL)
+	SetServerAddress(ts.URL)
 	ReportCounterMetric("mycounter", 42)
 	if !called {
 		t.Error("handler was not called")
@@ -35,7 +35,7 @@ func TestReportGaugeMetric(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setServerAddress(ts.URL)
+	SetServerAddress(ts.URL)
 	ReportGaugeMetric("temperature", 36.6)
 	if !called {
 		t.Error("handler was not called")
@@ -54,7 +54,7 @@ func TestReportMetric(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setServerAddress(ts.URL)
+	SetServerAddress(ts.URL)
 	ReportMetric("gauge", "test", 123)
 	if !called {
 		t.Error("handler was not called")
@@ -73,7 +73,7 @@ func TestUpdateMetrics(t *testing.T) {
 }
 
 func Test_setServerAddress(t *testing.T) {
-	setServerAddress("http://test:1234")
+	SetServerAddress("http://test:1234")
 	if ServerAddress != "http://test:1234" {
 		t.Errorf("ServerAddress not updated: got %s", ServerAddress)
 	}
@@ -86,7 +86,7 @@ func TestReportMetrics(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	setServerAddress(ts.URL)
+	SetServerAddress(ts.URL)
 	ReportMetrics()
 
 	if counter == 0 {

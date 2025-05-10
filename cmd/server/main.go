@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	configFlags()
 	store := storage.NewMemStorage()
 	r := chi.NewRouter()
 
@@ -17,13 +18,6 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	//mux := http.NewServeMux()
-
-	//mux.HandleFunc("POST /update/", handlers.MetricCalc(store))
-	//mux.HandleFunc("GET /", handlers.MetricList(store))
-	//mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-	//	http.Error(writer, "404 page not found", http.StatusNotFound)
-	//})
 	r.Get("/", handlers.MetricList(store))
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/{metricType}/{metricName}/{value}", handlers.MetricCalc(store))
@@ -32,7 +26,7 @@ func main() {
 		r.Get("/{metricType}/{metricName}", handlers.GetOneMetric(store))
 	})
 
-	err := http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(serverAddress, r)
 	if err != nil {
 		panic(err)
 	}
