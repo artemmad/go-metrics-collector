@@ -14,7 +14,7 @@ var (
 	ServerAddress = "http://localhost:8080"
 )
 
-func setServerAddress(serverAddress string) {
+func SetServerAddress(serverAddress string) {
 	ServerAddress = serverAddress
 }
 
