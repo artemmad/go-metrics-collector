@@ -8,23 +8,61 @@ import (
 	"time"
 )
 
-func Test_configFlags_withDurations(t *testing.T) {
-	// Сброс флагов перед тестом
+func resetFlags() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+}
 
-	// Подставим аргументы
+func Test_configFlags_Priority(t *testing.T) {
+	t.Setenv(adressEnv, "https://env-address")
+	t.Setenv(reportIntervalEnv, "99")
+	t.Setenv(pollIntervalEnv, "77")
+
+	resetFlags()
 	os.Args = []string{
 		"cmd",
-		"-a=127.0.0.1:9000",
-		"-r=15",
-		"-p=3",
+		"-a=cli-address",
+		"-r=33",
+		"-p=22",
 	}
 
-	// Вызов конфигурации
 	configFlags()
 
-	// Проверки
-	assert.Equal(t, "http://127.0.0.1:9000", serverAddress)
+	assert.Equal(t, "https://env-address", serverAddress)
+	assert.Equal(t, 99*time.Second, reportInterval)
+	assert.Equal(t, 77*time.Second, pollInterval)
+}
+
+func Test_configFlags_CLIOnly(t *testing.T) {
+	os.Unsetenv(adressEnv)
+	os.Unsetenv(reportIntervalEnv)
+	os.Unsetenv(pollIntervalEnv)
+
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-a=myhost:5000",
+		"-r=15",
+		"-p=5",
+	}
+
+	configFlags()
+
+	assert.Equal(t, "http://myhost:5000", serverAddress)
 	assert.Equal(t, 15*time.Second, reportInterval)
-	assert.Equal(t, 3*time.Second, pollInterval)
+	assert.Equal(t, 5*time.Second, pollInterval)
+}
+
+func Test_configFlags_Defaults(t *testing.T) {
+	os.Unsetenv(adressEnv)
+	os.Unsetenv(reportIntervalEnv)
+	os.Unsetenv(pollIntervalEnv)
+
+	resetFlags()
+	os.Args = []string{"cmd"}
+
+	configFlags()
+
+	assert.Equal(t, defaultServerAddress, serverAddress)
+	assert.Equal(t, time.Duration(reportIntervalDefault)*time.Second, reportInterval)
+	assert.Equal(t, time.Duration(pollIntervalDefault)*time.Second, pollInterval)
 }
