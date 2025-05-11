@@ -7,12 +7,39 @@ import (
 	"testing"
 )
 
-func Test_configFlags(t *testing.T) {
+func resetFlags() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+}
 
-	os.Args = []string{"cmd", "-a=127.0.0.1:9000"}
+func Test_configFlags_PriorityEnvOverFlag(t *testing.T) {
+	t.Setenv(Adress_env, "env-host:8888")
+
+	resetFlags()
+	os.Args = []string{"cmd", "-a=cli-host:7777"}
 
 	configFlags()
 
-	assert.Equal(t, "127.0.0.1:9000", serverAddress)
+	assert.Equal(t, "env-host:8888", serverAddress)
+}
+
+func Test_configFlags_CLIUsedIfNoEnv(t *testing.T) {
+	os.Unsetenv(Adress_env)
+
+	resetFlags()
+	os.Args = []string{"cmd", "-a=cli-host:5555"}
+
+	configFlags()
+
+	assert.Equal(t, "cli-host:5555", serverAddress)
+}
+
+func Test_configFlags_DefaultUsedIfNoEnvAndFlag(t *testing.T) {
+	os.Unsetenv(Adress_env)
+
+	resetFlags()
+	os.Args = []string{"cmd"}
+
+	configFlags()
+
+	assert.Equal(t, defaultServerAddress, serverAddress)
 }
