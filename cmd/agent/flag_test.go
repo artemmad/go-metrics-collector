@@ -24,7 +24,7 @@ func Test_configFlags_withDurations(t *testing.T) {
 	configFlags()
 
 	// Проверки
-	assert.Equal(t, "127.0.0.1:9000", serverAddress)
+	assert.Equal(t, "http://127.0.0.1:9000", serverAddress)
 	assert.Equal(t, 15*time.Second, reportInterval)
 	assert.Equal(t, 3*time.Second, pollInterval)
 }

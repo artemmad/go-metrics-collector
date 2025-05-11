@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"strings"
 	"time"
 )
 
@@ -22,4 +23,8 @@ func configFlags() {
 	flag.DurationVar(&pollInterval, "p", pollIntervalDefault, "The interval between scrap of metrics")
 
 	flag.Parse()
+
+	if !strings.HasPrefix(serverAddress, "http://") && !strings.HasPrefix(serverAddress, "https://") {
+		serverAddress = "http://" + serverAddress
+	}
 }
