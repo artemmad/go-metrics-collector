@@ -19,15 +19,15 @@ const (
 	pollIntervalDefault   = 2
 	reportIntervalDefault = 10
 
-	Adress_env         = "ADDRESS"
-	ReportInterval_env = "REPORT_INTERVAL"
-	PollInterval_env   = "POLL_INTERVAL"
+	adressEnv         = "ADDRESS"
+	reportIntervalEnv = "REPORT_INTERVAL"
+	pollIntervalEnv   = "POLL_INTERVAL"
 )
 
 func configFlags() {
-	serverAddressEnv, serverAddressEnvExistence := os.LookupEnv(Adress_env)
-	reportIntervalEnv, reportIntervalEnvExistence := os.LookupEnv(ReportInterval_env)
-	pollIntervalEnv, pollIntervalEnvExistence := os.LookupEnv(PollInterval_env)
+	serverAddressEnv, serverAddressEnvExistence := os.LookupEnv(adressEnv)
+	reportIntervalEnv, reportIntervalEnvExistence := os.LookupEnv(reportIntervalEnv)
+	pollIntervalEnv, pollIntervalEnvExistence := os.LookupEnv(pollIntervalEnv)
 
 	serverAddressParam := flag.String("a", defaultServerAddress, "The address to bind the server to, ex. http://localhost:8080")
 	reportIntervalIntParam := flag.Int("r", reportIntervalDefault, "The interval in seconds between send of metrics to the server")

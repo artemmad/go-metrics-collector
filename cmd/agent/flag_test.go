@@ -13,9 +13,9 @@ func resetFlags() {
 }
 
 func Test_configFlags_Priority(t *testing.T) {
-	t.Setenv(Adress_env, "https://env-address")
-	t.Setenv(ReportInterval_env, "99")
-	t.Setenv(PollInterval_env, "77")
+	t.Setenv(adressEnv, "https://env-address")
+	t.Setenv(reportIntervalEnv, "99")
+	t.Setenv(pollIntervalEnv, "77")
 
 	resetFlags()
 	os.Args = []string{
@@ -33,9 +33,9 @@ func Test_configFlags_Priority(t *testing.T) {
 }
 
 func Test_configFlags_CLIOnly(t *testing.T) {
-	os.Unsetenv(Adress_env)
-	os.Unsetenv(ReportInterval_env)
-	os.Unsetenv(PollInterval_env)
+	os.Unsetenv(adressEnv)
+	os.Unsetenv(reportIntervalEnv)
+	os.Unsetenv(pollIntervalEnv)
 
 	resetFlags()
 	os.Args = []string{
@@ -53,9 +53,9 @@ func Test_configFlags_CLIOnly(t *testing.T) {
 }
 
 func Test_configFlags_Defaults(t *testing.T) {
-	os.Unsetenv(Adress_env)
-	os.Unsetenv(ReportInterval_env)
-	os.Unsetenv(PollInterval_env)
+	os.Unsetenv(adressEnv)
+	os.Unsetenv(reportIntervalEnv)
+	os.Unsetenv(pollIntervalEnv)
 
 	resetFlags()
 	os.Args = []string{"cmd"}

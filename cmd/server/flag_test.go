@@ -12,7 +12,7 @@ func resetFlags() {
 }
 
 func Test_configFlags_PriorityEnvOverFlag(t *testing.T) {
-	t.Setenv(Adress_env, "env-host:8888")
+	t.Setenv(adressEnv, "env-host:8888")
 
 	resetFlags()
 	os.Args = []string{"cmd", "-a=cli-host:7777"}
@@ -23,7 +23,7 @@ func Test_configFlags_PriorityEnvOverFlag(t *testing.T) {
 }
 
 func Test_configFlags_CLIUsedIfNoEnv(t *testing.T) {
-	os.Unsetenv(Adress_env)
+	os.Unsetenv(adressEnv)
 
 	resetFlags()
 	os.Args = []string{"cmd", "-a=cli-host:5555"}
@@ -34,7 +34,7 @@ func Test_configFlags_CLIUsedIfNoEnv(t *testing.T) {
 }
 
 func Test_configFlags_DefaultUsedIfNoEnvAndFlag(t *testing.T) {
-	os.Unsetenv(Adress_env)
+	os.Unsetenv(adressEnv)
 
 	resetFlags()
 	os.Args = []string{"cmd"}
