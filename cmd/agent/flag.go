@@ -13,18 +13,20 @@ var (
 )
 
 const (
-	pollIntervalDefault   = 2 * time.Second
-	reportIntervalDefault = 10 * time.Second
+	pollIntervalDefault   = 2
+	reportIntervalDefault = 10
 )
 
 func configFlags() {
 	flag.StringVar(&serverAddress, "a", "http://localhost:8080", "The address to bind the server to, ex. http://localhost:8080")
-	flag.DurationVar(&reportInterval, "r", reportIntervalDefault, "The interval between send of metrics to the server")
-	flag.DurationVar(&pollInterval, "p", pollIntervalDefault, "The interval between scrap of metrics")
+	reportIntervalInt := flag.Int("r", reportIntervalDefault, "The interval in seconds between send of metrics to the server")
+	pollIntervalInt := flag.Int("p", pollIntervalDefault, "The interval between scrap of metrics in seconds")
 
 	flag.Parse()
 
 	if !strings.HasPrefix(serverAddress, "http://") && !strings.HasPrefix(serverAddress, "https://") {
 		serverAddress = "http://" + serverAddress
 	}
+	reportInterval = time.Duration(*reportIntervalInt) * time.Second
+	pollInterval = time.Duration(*pollIntervalInt) * time.Second
 }

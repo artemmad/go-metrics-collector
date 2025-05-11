@@ -16,8 +16,8 @@ func Test_configFlags_withDurations(t *testing.T) {
 	os.Args = []string{
 		"cmd",
 		"-a=127.0.0.1:9000",
-		"-r=15s",
-		"-p=3s",
+		"-r=15",
+		"-p=3",
 	}
 
 	// Вызов конфигурации
